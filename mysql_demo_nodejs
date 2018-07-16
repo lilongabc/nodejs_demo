@@ -1,0 +1,28 @@
+var f5 = require('f5-nodejs');
+var ilx = new f5.ILXServer();
+ilx.addMethod('myql_nodejs', function (req, res) {
+    var username = req.params()[0];
+    var mysql = require('mysql');
+    var connection = mysql.createConnection({  
+        host     : '192.168.0.193',  
+        user     : 'root',  
+        password : 'default'
+    });  
+  
+    connection.connect();  
+  
+    connection.query('SELECT VERSION from USER.USER_VERSION where name = ' + "\"" + req.params()[0] + "\"" + ';', function(err,results) {  
+    console.log();
+    if (err) {  
+        console.log(err);  
+        return;  
+    }
+    var str = JSON.stringify(results[0]); 
+    var jsonObj = JSON.parse(str);
+    console.log(jsonObj.VERSION);
+    res.reply(jsonObj.VERSION)
+});  
+connection.end(); 
+});
+ilx.listen();
+
