@@ -1,0 +1,25 @@
+#passwd axxxxxx,
+when HTTP_REQUEST {
+     if { [HTTP::username] ne "" } {
+         set username [HTTP::username] 
+         log local0. "The $username has been HTTP BASIC authorized to access virtual server [virtual name]"
+         set RPC_HANDLE [ILX::init iruleslx_mysql_plugin mysql_extension]
+         if {[catch {ILX::call $RPC_HANDLE myql_nodejs $username} rpc_response]} {
+                log local0.error  "Client - [IP::client_addr] -Username $username, ILX failure: $rpc_response"
+                HTTP::respond 400 content "<html>Some error page to client</html>"
+                return
+            }
+     if { $rpc_response eq "v1" } {    
+         pool pool_blue
+         log local0. "Looked up mysql db $username version is $rpc_response , Then forward pool_blue"
+        }
+     if { $rpc_response eq "v2" } {    
+         pool pool_green
+         log local0. "Looked up mysql db $username version is $rpc_response , Then forward pool_green"
+        }
+     } else {
+         HTTP::respond 401 WWW-Authenticate "Basic realm=\"Secured Area\""
+     }
+}
+
+
